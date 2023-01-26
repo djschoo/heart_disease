@@ -1,0 +1,89 @@
+---
+title: "Heart Disease Classification"
+format: html
+jupyter: python3
+editor_options: 
+  chunk_output_type: console
+---
+
+Introduction
+===
+
+The World Health Organization (WHO) estimates that 17.9 million people die from cardiovascular diseases (CVDs) every year. In this project, I analyze a dataset with anonymized data from multiple hospitals on several patients. The dataset includes relevant information for each patient, such as their personal information and some medical data, including whether or not they have had heart disease before.
+
+First, import the libraries and data set and display the first five rows.
+
+```{r}
+pacman::p_load(reticulate, tidyverse)
+use_condaenv("dq")
+```
+
+
+```{python}
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+heart = pd.read_csv("heart.csv")
+
+heart.head()
+```
+
+Print the info on the dataframe.
+
+```{python}
+heart.shape
+```
+
+There are no missing values in the entire data set!
+
+```{python}
+heart.isna().sum().sum()
+```
+
+
+```{python}
+heart.info()
+```
+
+Describe the numeric fields.
+
+```{python}
+heart.describe().T
+```
+
+We can see that there are no missing values in any fields. The average age is 53, so we might expect a fair amount of heart disease in this population. Interestingly, only 55% of the population has heart disease. Note that heart disease is considered binary in this data set (presumably actual heart disease is more continuous). Cholesterol is likely left-skewed--it might be worth investigating the outliers with very low cholesterol. The minimum zero values for cholesterol, fasting blood sugar, and resting blood pressure seem suspicious.
+
+```{r}
+heart = py$heart
+
+heart %>%
+  mutate(across(c(HeartDisease, FastingBS), as.factor)) %>%
+  select(where(is.character), where(is.factor), HeartDisease) %>%
+  pivot_longer(cols=everything()) %>%
+  ggplot(aes(y=value, fill=name)) +
+  facet_wrap(~name, scales="free") +
+  geom_bar() +
+  guides(fill='none') +
+  scale_fill_viridis_d() +
+  ggthemes::theme_clean() + 
+  labs(y=NULL, x=NULL)
+```
+
+```{r}
+heart %>%
+  mutate(across(c(HeartDisease, FastingBS), as.factor)) %>%
+  select(where(is.character), where(is.factor), HeartDisease) %>%
+  pivot_longer(cols=1:last_col(1)) %>%
+  ggplot(aes(y=value, fill=HeartDisease)) +
+  facet_wrap(~name, scales="free", ncol=2) +
+  geom_bar(position='dodge2') +
+  scale_fill_viridis_d() +
+  ggthemes::theme_clean() +
+  labs(y=NULL, x=NULL)
+```
+
+```{python}
+
+```
+

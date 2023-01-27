@@ -1,9 +1,14 @@
 ---
 title: "Heart Disease Classification"
+author: "Tim Hister"
 format: html
-jupyter: python3
-editor_options: 
+out-width: '100%'
+editor_options:
   chunk_output_type: console
+toc: true
+execute: 
+  warning: false
+  freeze: true
 ---
 
 Introduction
@@ -11,11 +16,12 @@ Introduction
 
 The World Health Organization (WHO) estimates that 17.9 million people die from cardiovascular diseases (CVDs) every year. In this project, I analyze a dataset with anonymized data from multiple hospitals on several patients. The dataset includes relevant information for each patient, such as their personal information and some medical data, including whether or not they have had heart disease before.
 
-First, import the libraries and data set and display the first five rows.
+First, import the libraries, data set, and display the first five rows.
 
 ```{r}
-pacman::p_load(reticulate, tidyverse)
-use_condaenv("dq")
+#| include: false
+library(reticulate)
+repl_python()
 ```
 
 
@@ -23,40 +29,66 @@ use_condaenv("dq")
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
 
 heart = pd.read_csv("heart.csv")
+```
 
+Descriptive Stats
+===========
+
+Display the first five rows of the dataframe.
+
+```{python}
 heart.head()
 ```
 
-Print the info on the dataframe.
+Print the shape of the dataframe.
 
 ```{python}
 heart.shape
 ```
 
-There are no missing values in the entire data set!
+Verify that there are no missing values in the data set.
 
 ```{python}
 heart.isna().sum().sum()
 ```
 
+Print the info of the dataframe.
 
 ```{python}
 heart.info()
 ```
 
-Describe the numeric fields.
+Describe the numeric fields of the dataframe.
 
 ```{python}
 heart.describe().T
 ```
 
+It is doubtful that values of zero for cholesterol and resting blood pressure are accurate. 
+
+```{python}
+#| include: false
+quit
+```
+
+
 We can see that there are no missing values in any fields. The average age is 53, so we might expect a fair amount of heart disease in this population. Interestingly, only 55% of the population has heart disease. Note that heart disease is considered binary in this data set (presumably actual heart disease is more continuous). Cholesterol is likely left-skewed--it might be worth investigating the outliers with very low cholesterol. The minimum zero values for cholesterol, fasting blood sugar, and resting blood pressure seem suspicious.
 
-```{r}
-heart = py$heart
+Visualizations
+===========
 
+I really prefer R's graphics to Python's so we'll use R's for now. First, we'll plot a bar chart for each value of the categorical variables.
+
+```{r}
+pacman::p_load(reticulate, tidyverse)
+heart = py$heart
+```
+
+```{r}
 heart %>%
   mutate(across(c(HeartDisease, FastingBS), as.factor)) %>%
   select(where(is.character), where(is.factor), HeartDisease) %>%
@@ -66,9 +98,13 @@ heart %>%
   geom_bar() +
   guides(fill='none') +
   scale_fill_viridis_d() +
-  ggthemes::theme_clean() + 
+  ggthemes::theme_clean() +
   labs(y=NULL, x=NULL)
 ```
+
+We can see that most of the population has heart disease. Additionally, there are far more males than females in the sample, which could potentially bias any conclusions that are drawn about the overall population.
+
+Next, we plot a bar chart for the same variables but grouped by heart disease.
 
 ```{r}
 heart %>%
@@ -83,7 +119,90 @@ heart %>%
   labs(y=NULL, x=NULL)
 ```
 
-```{python}
+We can see that males are far more likely than females to have heart disease. Additionally, those with heart disease are very likely to experience asymptomatic chest pain (ASY), which is worrisome (because people will not be aware of symptoms that are asymptomatic). Finally, patients with high fasting blood sugar are very likely to have heart disease.
 
+Data Cleaning
+==========
+
+Dummy Variables
+------------
+
+It will be useful to convert the categorical variables into dummy variables.
+
+```{r}
+#| include: false
+repl_python()
+```
+
+```{python}
+heart = pd.get_dummies(heart, columns=['ChestPainType', 'ExerciseAngina', 'RestingECG', 'ST_Slope', 'Sex'], drop_first=True)
+heart.columns
+```
+
+```{python}
+cor = heart.corr()
+cor.sort_values('HeartDisease', axis=0)['HeartDisease']
+```
+
+```{python}
+sns.heatmap(cor)
+plt.show()
+```
+
+```{python}
+#| include: false
+quit
+```
+
+
+Incorrect Values
+---------
+
+As discussed, we might suspect that cholesterol and resting blood pressure have incorrect values. Next, we plot the histograms for those two variables.
+
+```{r}
+heart %>%
+  select(Cholesterol, RestingBP) %>%
+  pivot_longer(cols=1:2) %>%
+  ggplot(aes(x=value, fill=name)) +
+  facet_wrap(~name, scales='free_x') +
+  geom_histogram() + 
+  scale_fill_viridis_d() +
+  ggthemes::theme_clean() +
+  labs(y=NULL, x=NULL) +
+  guides(fill = 'none')
+```
+
+We will replace the zero values for these two variables with the mean of the variable by heart disease value.
+
+```{r}
+#| include: false
+repl_python()
+```
+
+```{python}
+heart_means = heart.groupby('HeartDisease')['Cholesterol', 'RestingBP'].mean(numeric_only=True).rename(columns={'Cholesterol':'chol_mean', 'RestingBP': 'bp_mean'})
+
+heart2 = heart.join(heart_means, on='HeartDisease', how='left')
+
+heart2['Cholesterol'] = heart2.apply(lambda x: x['chol_mean'] if x['Cholesterol'] == 0 else x['Cholesterol'], axis=1)
+heart2['RestingBP'] = heart2.apply(lambda x: x['bp_mean'] if x['RestingBP'] == 0 else x['RestingBP'], axis=1)
+heart2 = heart2.drop(['chol_mean', 'bp_mean'], axis=1)
+
+heart2[['Cholesterol', 'RestingBP']].describe()
+```
+
+Models
+==========
+
+```{python}
+features = ['Sex_M', 'ST_Slope_Up', 'ST_Slope_Flat', 'ExerciseAngina_Y', 'Oldpeak', 'Age', 'FastingBS', 'FastingBP']
+
+X = cancer_df.drop(columns = 'target')
+y = cancer_df['target']
+
+X_train, X_test, y_train, y_test = train_test_split(heart2.drop(columns='HeartDisease'), heart2['HeartDisease'], test_size=.2)
+
+X_train.shape, y_train.shape, X_test.shape, y_test.shape
 ```
 

@@ -30,7 +30,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import train_test_split, GridSearchCV
 
 heart = pd.read_csv("heart.csv")
 ```
@@ -147,7 +149,18 @@ cor.sort_values('HeartDisease', axis=0)['HeartDisease']
 ```{python}
 sns.heatmap(cor)
 plt.show()
+plt.close()
 ```
+
+It is surprising (to me, anyway) the cholesterol is not particularly correlated with heart disease. Let's plot a scatterplot of cholesterol and heart disease:
+
+```{python}
+sns.scatterplot(data=heart, y='Cholesterol', x='HeartDisease')
+plt.show()
+plt.close()
+```
+
+There is an association between cholesterol and heart disease but indeed, it does appear to be all that strong.
 
 ```{python}
 #| include: false
@@ -195,14 +208,39 @@ heart2[['Cholesterol', 'RestingBP']].describe()
 Models
 ==========
 
-```{python}
-features = ['Sex_M', 'ST_Slope_Up', 'ST_Slope_Flat', 'ExerciseAngina_Y', 'Oldpeak', 'Age', 'FastingBS', 'FastingBP']
+First, we make a 80%/20% train/test split and print the dimensions of the resultant objects.
 
-X = cancer_df.drop(columns = 'target')
-y = cancer_df['target']
+```{python}
+features = ['Sex_M', 'ST_Slope_Up', 'ST_Slope_Flat', 'ExerciseAngina_Y', 'Oldpeak', 'Age', 'RestingBP']
 
 X_train, X_test, y_train, y_test = train_test_split(heart2.drop(columns='HeartDisease'), heart2['HeartDisease'], test_size=.2)
 
 X_train.shape, y_train.shape, X_test.shape, y_test.shape
 ```
+
+Univariate Models
+-----------
+
+For the first shot at this, we'll pass one feature at a time and run a k-nearest neighbors model. We'll also try a number of neighbors. We'll store the accuracy scores in a numpy array. We'll print the entire score matrix and the maximum scores per variable.
+
+```{python}
+accuracy = np.zeros((len(range(10)), len(features)))
+
+for k in range(10):
+  for f in range(len(features)):
+    knn = KNeighborsClassifier(k+1).fit(pd.DataFrame(X_train[features[f]]), y_train)
+    score = knn.score(pd.DataFrame(X_test[features[f]]), y_test)
+    accuracy[k, f] = round(score, 2)
+    
+accuracy = pd.DataFrame(accuracy)
+accuracy.columns = features
+accuracy.index = accuracy.index + 1
+
+print(accuracy.T)
+
+print(accuracy.max())
+```
+
+Multivariate Models
+-------------
 

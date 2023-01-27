@@ -117,6 +117,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <li><a href="#dummy-variables" id="toc-dummy-variables" class="nav-link" data-scroll-target="#dummy-variables">Dummy Variables</a></li>
   <li><a href="#incorrect-values" id="toc-incorrect-values" class="nav-link" data-scroll-target="#incorrect-values">Incorrect Values</a></li>
   </ul></li>
+  <li><a href="#models" id="toc-models" class="nav-link" data-scroll-target="#models">Models</a>
+  <ul class="collapse">
+  <li><a href="#univariate-models" id="toc-univariate-models" class="nav-link" data-scroll-target="#univariate-models">Univariate Models</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -158,7 +162,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <pre><code>C:\Users\djsch\MINICO~1\lib\site-packages\scipy\__init__.py:146: UserWarning: A NumPy version &gt;=1.16.5 and &lt;1.23.0 is required for this version of SciPy (detected version 1.23.5
   warnings.warn(f"A NumPy version &gt;={np_minversion} and &lt;{np_maxversion}"</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>heart <span class="op">=</span> pd.read_csv(<span class="st">"heart.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsClassifier</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> MinMaxScaler</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split, GridSearchCV</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>heart <span class="op">=</span> pd.read_csv(<span class="st">"heart.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="descriptive-stats" class="level1">
@@ -293,27 +301,25 @@ HeartDisease  918.0    0.553377    0.497414   0.0    0.00    1.0    1.0    1.0</
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>cor <span class="op">=</span> heart.corr()</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>cor.sort_values(<span class="st">'HeartDisease'</span>, axis<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>cor.sort_values(<span class="st">'HeartDisease'</span>, axis<span class="op">=</span><span class="dv">0</span>)[<span class="st">'HeartDisease'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>                        Age  RestingBP  ...  ST_Slope_Up     Sex_M
-ST_Slope_Up       -0.258067  -0.096146  ...     1.000000 -0.150942
-ChestPainType_ATA -0.218165  -0.046153  ...     0.357588 -0.161522
-MaxHR             -0.382045  -0.112135  ...     0.383397 -0.189186
-Cholesterol       -0.095282   0.100893  ...     0.094027 -0.200092
-ChestPainType_NAP -0.011335  -0.041348  ...     0.093583 -0.066486
-RestingECG_Normal -0.230566  -0.116851  ...     0.078563 -0.010634
-ChestPainType_TA   0.032042   0.049855  ...     0.002087 -0.004031
-RestingECG_ST      0.136798   0.090447  ...    -0.058936  0.063715
-RestingBP          0.254399   1.000000  ...    -0.096146  0.005133
-FastingBS          0.198039   0.070193  ...    -0.161730  0.120076
-Age                1.000000   0.254399  ...    -0.258067  0.055750
-Sex_M              0.055750   0.005133  ...    -0.150942  1.000000
-Oldpeak            0.258612   0.164803  ...    -0.450577  0.105734
-ExerciseAngina_Y   0.215793   0.155101  ...    -0.455676  0.190664
-ST_Slope_Flat      0.185568   0.099207  ...    -0.870951  0.116077
-HeartDisease       0.282039   0.107589  ...    -0.622164  0.305445
-
-[16 rows x 16 columns]</code></pre>
+<pre><code>ST_Slope_Up         -0.622164
+ChestPainType_ATA   -0.401924
+MaxHR               -0.400421
+Cholesterol         -0.232741
+ChestPainType_NAP   -0.212964
+RestingECG_Normal   -0.091580
+ChestPainType_TA    -0.054790
+RestingECG_ST        0.102527
+RestingBP            0.107589
+FastingBS            0.267291
+Age                  0.282039
+Sex_M                0.305445
+Oldpeak              0.403951
+ExerciseAngina_Y     0.494282
+ST_Slope_Flat        0.554134
+HeartDisease         1.000000
+Name: HeartDisease, dtype: float64</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -322,39 +328,50 @@ HeartDisease       0.282039   0.107589  ...    -0.622164  0.305445
 <div class="cell-output-display">
 <p><img src="heart_disease_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
 </div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>plt.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>It is surprising (to me, anyway) the cholesterol is not particularly correlated with heart disease. Let’s plot a scatterplot of cholesterol and heart disease:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(data<span class="op">=</span>heart, y<span class="op">=</span><span class="st">'Cholesterol'</span>, x<span class="op">=</span><span class="st">'HeartDisease'</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="heart_disease_files/figure-html/unnamed-chunk-16-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>plt.close()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There is an association between cholesterol and heart disease but indeed, it does appear to be all that strong.</p>
 </section>
 <section id="incorrect-values" class="level2">
 <h2 class="anchored" data-anchor-id="incorrect-values">Incorrect Values</h2>
 <p>As discussed, we might suspect that cholesterol and resting blood pressure have incorrect values. Next, we plot the histograms for those two variables.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>heart <span class="sc">%&gt;%</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Cholesterol, RestingBP) <span class="sc">%&gt;%</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>value, <span class="at">fill=</span>name)) <span class="sc">+</span></span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">scales=</span><span class="st">'free_x'</span>) <span class="sc">+</span></span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>() <span class="sc">+</span> </span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_d</span>() <span class="sc">+</span></span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_clean</span>() <span class="sc">+</span></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="cn">NULL</span>, <span class="at">x=</span><span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="st">'none'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>heart <span class="sc">%&gt;%</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(Cholesterol, RestingBP) <span class="sc">%&gt;%</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols=</span><span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>value, <span class="at">fill=</span>name)) <span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name, <span class="at">scales=</span><span class="st">'free_x'</span>) <span class="sc">+</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>() <span class="sc">+</span> </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_d</span>() <span class="sc">+</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  ggthemes<span class="sc">::</span><span class="fu">theme_clean</span>() <span class="sc">+</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y=</span><span class="cn">NULL</span>, <span class="at">x=</span><span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="st">'none'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<p><img src="heart_disease_files/figure-html/unnamed-chunk-16-3.png" class="img-fluid" width="672"></p>
+<p><img src="heart_disease_files/figure-html/unnamed-chunk-18-5.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>We will replace the zero values for these two variables with the mean of the variable by heart disease value.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>heart_means <span class="op">=</span> heart.groupby(<span class="st">'HeartDisease'</span>)[<span class="st">'Cholesterol'</span>, <span class="st">'RestingBP'</span>].mean(numeric_only<span class="op">=</span><span class="va">True</span>).rename(columns<span class="op">=</span>{<span class="st">'Cholesterol'</span>:<span class="st">'chol_mean'</span>, <span class="st">'RestingBP'</span>: <span class="st">'bp_mean'</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>heart_means <span class="op">=</span> heart.groupby(<span class="st">'HeartDisease'</span>)[<span class="st">'Cholesterol'</span>, <span class="st">'RestingBP'</span>].mean(numeric_only<span class="op">=</span><span class="va">True</span>).rename(columns<span class="op">=</span>{<span class="st">'Cholesterol'</span>:<span class="st">'chol_mean'</span>, <span class="st">'RestingBP'</span>: <span class="st">'bp_mean'</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>&lt;string&gt;:1: FutureWarning: Indexing with multiple keys (implicitly converted to a tuple of keys) will be deprecated, use a list instead.</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>heart2 <span class="op">=</span> heart.join(heart_means, on<span class="op">=</span><span class="st">'HeartDisease'</span>, how<span class="op">=</span><span class="st">'left'</span>)</span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>heart2[<span class="st">'Cholesterol'</span>] <span class="op">=</span> heart2.<span class="bu">apply</span>(<span class="kw">lambda</span> x: x[<span class="st">'chol_mean'</span>] <span class="cf">if</span> x[<span class="st">'Cholesterol'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> x[<span class="st">'Cholesterol'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>heart2[<span class="st">'RestingBP'</span>] <span class="op">=</span> heart2.<span class="bu">apply</span>(<span class="kw">lambda</span> x: x[<span class="st">'bp_mean'</span>] <span class="cf">if</span> x[<span class="st">'RestingBP'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> x[<span class="st">'RestingBP'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>heart2 <span class="op">=</span> heart2.drop([<span class="st">'chol_mean'</span>, <span class="st">'bp_mean'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>heart2[[<span class="st">'Cholesterol'</span>, <span class="st">'RestingBP'</span>]].describe()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>heart2 <span class="op">=</span> heart.join(heart_means, on<span class="op">=</span><span class="st">'HeartDisease'</span>, how<span class="op">=</span><span class="st">'left'</span>)</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>heart2[<span class="st">'Cholesterol'</span>] <span class="op">=</span> heart2.<span class="bu">apply</span>(<span class="kw">lambda</span> x: x[<span class="st">'chol_mean'</span>] <span class="cf">if</span> x[<span class="st">'Cholesterol'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> x[<span class="st">'Cholesterol'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>heart2[<span class="st">'RestingBP'</span>] <span class="op">=</span> heart2.<span class="bu">apply</span>(<span class="kw">lambda</span> x: x[<span class="st">'bp_mean'</span>] <span class="cf">if</span> x[<span class="st">'RestingBP'</span>] <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> x[<span class="st">'RestingBP'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>heart2 <span class="op">=</span> heart2.drop([<span class="st">'chol_mean'</span>, <span class="st">'bp_mean'</span>], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>heart2[[<span class="st">'Cholesterol'</span>, <span class="st">'RestingBP'</span>]].describe()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>       Cholesterol   RestingBP
 count   918.000000  918.000000
@@ -365,6 +382,60 @@ min      85.000000   80.000000
 50%     225.000000  130.000000
 75%     267.000000  140.000000
 max     603.000000  200.000000</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="models" class="level1">
+<h1>Models</h1>
+<p>First, we make a 80%/20% train/test split and print the dimensions of the resultant objects.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">'Sex_M'</span>, <span class="st">'ST_Slope_Up'</span>, <span class="st">'ST_Slope_Flat'</span>, <span class="st">'ExerciseAngina_Y'</span>, <span class="st">'Oldpeak'</span>, <span class="st">'Age'</span>, <span class="st">'RestingBP'</span>]</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(heart2.drop(columns<span class="op">=</span><span class="st">'HeartDisease'</span>), heart2[<span class="st">'HeartDisease'</span>], test_size<span class="op">=</span><span class="fl">.2</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>X_train.shape, y_train.shape, X_test.shape, y_test.shape</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>((734, 15), (734,), (184, 15), (184,))</code></pre>
+</div>
+</div>
+<section id="univariate-models" class="level2">
+<h2 class="anchored" data-anchor-id="univariate-models">Univariate Models</h2>
+<p>For the first shot at this, we’ll pass one feature at a time and run a k-nearest neighbors model. We’ll also try a number of neighbors. We’ll store the accuracy scores in a numpy array. We’ll print the entire score matrix and the maximum scores per variable.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>accuracy <span class="op">=</span> np.zeros((<span class="bu">len</span>(<span class="bu">range</span>(<span class="dv">10</span>)), <span class="bu">len</span>(features)))</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> k <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">10</span>):</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> f <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(features)):</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    knn <span class="op">=</span> KNeighborsClassifier(k<span class="op">+</span><span class="dv">1</span>).fit(pd.DataFrame(X_train[features[f]]), y_train)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    score <span class="op">=</span> knn.score(pd.DataFrame(X_test[features[f]]), y_test)</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    accuracy[k, f] <span class="op">=</span> <span class="bu">round</span>(score, <span class="dv">2</span>)</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>accuracy <span class="op">=</span> pd.DataFrame(accuracy)</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>accuracy.columns <span class="op">=</span> features</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>accuracy.index <span class="op">=</span> accuracy.index <span class="op">+</span> <span class="dv">1</span></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(accuracy.T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    1     2     3     4     5     6     7     8     9     10
+Sex_M             0.41  0.41  0.41  0.41  0.41  0.41  0.41  0.41  0.66  0.41
+ST_Slope_Up       0.82  0.82  0.82  0.82  0.82  0.82  0.82  0.82  0.82  0.82
+ST_Slope_Flat     0.41  0.41  0.75  0.75  0.75  0.75  0.75  0.75  0.75  0.75
+ExerciseAngina_Y  0.74  0.41  0.74  0.74  0.74  0.74  0.74  0.74  0.74  0.74
+Oldpeak           0.59  0.56  0.69  0.68  0.71  0.70  0.70  0.70  0.74  0.70
+Age               0.58  0.54  0.65  0.62  0.62  0.58  0.62  0.59  0.62  0.61
+RestingBP         0.54  0.51  0.61  0.54  0.60  0.61  0.61  0.60  0.61  0.56</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(accuracy.<span class="bu">max</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Sex_M               0.66
+ST_Slope_Up         0.82
+ST_Slope_Flat       0.75
+ExerciseAngina_Y    0.74
+Oldpeak             0.74
+Age                 0.65
+RestingBP           0.61
+dtype: float64</code></pre>
 </div>
 </div>
 </section>
